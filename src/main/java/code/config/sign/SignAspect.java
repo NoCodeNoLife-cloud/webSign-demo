@@ -16,7 +16,6 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
@@ -28,14 +27,6 @@ public class SignAspect {
 	 * SIGN_HEADER.
 	 */
 	private static final String SIGN_HEADER = "X-SIGN";
-
-	/**
-	 * pointcut.
-	 */
-	@Pointcut("execution(@code.config.sign.Signature * *(..))")
-	private void verifySignPointCut() {
-		// nothing
-	}
 
 	/**
 	 * This method is an aspect that verifies the signature of an HTTP request.
@@ -64,15 +55,21 @@ public class SignAspect {
 	}
 
 	/**
+	 * pointcut.
+	 */
+	@Pointcut("execution(@code.config.sign.Signature * *(..))")
+	private void verifySignPointCut() {
+		// nothing
+	}
+
+	/**
 	 * Generates the signature of an HTTP request.
 	 *
 	 * @param request the HTTP request
 	 *
 	 * @return the generated signature
-	 *
-	 * @throws IOException if an I/O error occurs
 	 */
-	private String generatedSignature(HttpServletRequest request) throws IOException {
+	private String generatedSignature(HttpServletRequest request) {
 		// @RequestBody
 		String bodyParam = null;
 		if (request instanceof ContentCachingRequestWrapper) {
@@ -85,6 +82,7 @@ public class SignAspect {
 		// @PathVariable
 		String[] paths = null;
 		ServletWebRequest webRequest = new ServletWebRequest(request, null);
+		@SuppressWarnings("unchecked")
 		Map<String, String> uriTemplateVars = (Map<String, String>) webRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
 		if (!CollectionUtils.isEmpty(uriTemplateVars)) {
 			paths = uriTemplateVars.values().toArray(new String[0]);
